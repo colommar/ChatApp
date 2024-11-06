@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 控制台输出配置 -->
+        <encoder>
+            <!-- 使用%highlight来对不同级别的日志应用颜色 -->
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %highlight(%logger{36}) - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

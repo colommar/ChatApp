@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>简易聊天应用</title>
+    <!-- 引入 day.js 用于格式化日期 -->
+    <script src="https://unpkg.com/dayjs"></script>
+</head>
+<body>
+<h1>简易聊天应用</h1>
+<div id="chat">
+    <ul id="messages"></ul>
+</div>
+<!-- 接收者输入框 -->
+<input id="receiverInput" type="text" placeholder="接收者（可选）" />
+<input id="messageInput" type="text" placeholder="输入消息..." autofocus />
+<button id="sendButton">发送</button>
+
+<script src="chat.js"></script>
+</body>
+</html>
