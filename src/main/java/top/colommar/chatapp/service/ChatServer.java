@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 
+import top.colommar.chatapp.repository.ChatFileRepository;
 import top.colommar.chatapp.repository.MessageRepository;
 import top.colommar.chatapp.repository.UserRepository;
 
@@ -24,6 +25,9 @@ public class ChatServer implements CommandLineRunner {
     @Autowired
     private MessageRepository messageRepository;
 
+    @Autowired
+    private ChatFileRepository chatfileRepository;
+
     @Override
     public void run(String... args) throws Exception {
         start();
@@ -36,7 +40,7 @@ public class ChatServer implements CommandLineRunner {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChatServerInitializer(userRepository, messageRepository));
+                    .childHandler(new ChatServerInitializer(userRepository, messageRepository, chatfileRepository));
 
             ChannelFuture f = b.bind(port).sync();
             System.out.println("服务器已启动，监听端口：" + port);

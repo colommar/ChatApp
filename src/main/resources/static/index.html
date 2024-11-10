@@ -5,6 +5,8 @@
     <title>简易聊天应用</title>
     <!-- 引入 day.js 用于格式化日期 -->
     <script src="https://unpkg.com/dayjs"></script>
+    <!-- 添加 Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <!-- 添加自定义的 CSS 样式 -->
     <link rel="stylesheet" href="./chat.css">
 </head>
@@ -16,11 +18,11 @@
     <h2 style="text-align: center;">登录</h2>
     <form id="loginForm">
         <div>
-            <label for="loginUsername">用户名：</label>
+            <label for="loginUsername" data-icon="user">用户名：</label>
             <input type="text" id="loginUsername" name="username" required />
         </div>
         <div>
-            <label for="loginPassword">密码：</label>
+            <label for="loginPassword" data-icon="lock">密码：</label>
             <input type="password" id="loginPassword" name="password" required />
         </div>
         <button type="submit">登录</button>
@@ -35,11 +37,11 @@
     <h2 style="text-align: center;">注册</h2>
     <form id="registerForm">
         <div>
-            <label for="registerUsername">用户名：</label>
+            <label for="registerUsername" data-icon="user">用户名：</label>
             <input type="text" id="registerUsername" name="username" required />
         </div>
         <div>
-            <label for="registerPassword">密码：</label>
+            <label for="registerPassword" data-icon="lock">密码：</label>
             <input type="password" id="registerPassword" name="password" required />
         </div>
         <button type="submit">注册</button>
@@ -62,6 +64,12 @@
             <input id="messageInput" type="text" placeholder="输入消息..." autofocus />
             <button id="sendButton">发送</button>
         </div>
+        <!-- 文件上传区域 -->
+        <div id="fileUploadArea">
+            <input type="file" id="fileInput" />
+            <button id="uploadButton">上传文件</button>
+            <p id="uploadStatus"></p>
+        </div>
         <!-- 当前用户名显示 -->
         <div id="currentUsername">当前用户: 未登录</div>
     </div>
@@ -69,6 +77,11 @@
     <div id="userList">
         <h3>用户列表</h3>
         <ul id="userListItems"></ul>
+    </div>
+    <!-- 文件列表 -->
+    <div id="fileList">
+        <h3>文件列表</h3>
+        <ul id="fileListItems"></ul>
     </div>
 </div>
 
@@ -140,14 +153,16 @@
                 handleRegisterResponse(data);
             } else if (data.type === "message") {
                 displayMessage(data);
+            } else if (data.type === "file") {
+                displayFile(data);
+            } else if (data.type === "fileList") {
+                displayFileList(data.files);
             } else if (data.type === "userList") {
                 updateUserList(data.users);
             } else if (data.type === "userStatusUpdate") {
                 updateUserStatus(data.users);
             } else if (data.type === "error") {
                 alert("错误：" + data.message);
-            } else if (data.type === "history") {
-                loadChatHistory(data.messages);
             }
         };
 
@@ -240,9 +255,7 @@
             var message = {
                 type: "message",
                 content: content,
-                sender: username,
-                receiver: receiver,
-                timestamp: new Date().getTime() // 使用当前时间的时间戳
+                receiver: receiver
             };
 
             ws.send(JSON.stringify(message));
@@ -255,6 +268,49 @@
         if (event.key === "Enter") {
             sendButton.click();
         }
+    });
+
+    // 处理文件上传
+    var uploadButton = document.getElementById("uploadButton");
+    var fileInput = document.getElementById("fileInput");
+    var uploadStatus = document.getElementById("uploadStatus");
+    uploadButton.addEventListener("click", function () {
+        var file = fileInput.files[0];
+        if (!file) {
+            alert("请选择一个文件！");
+            return;
+        }
+
+        var formData = new FormData();
+        var receiverValue = receiverSelect.value;
+        formData.append("file", file);
+        formData.append("sender", username);
+        var receiver = receiverValue ? receiverValue : null; // 如果没有选择接收者，设置为 null
+        formData.append("receiver", receiver);
+        // formData.append("timestamp", ti)
+        // 可选：添加接收者
+        // formData.append("receiver", "其他用户名");
+
+        fetch("http://127.0.0.1:8080/api/chatfiles/upload", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                return response.text();
+            })
+            .then(fileUrl => {
+                console.log("文件上传成功:", fileUrl);
+                uploadStatus.innerText = "文件上传成功";
+                // 清空文件输入
+                fileInput.value = "";
+            })
+            .catch(error => {
+                console.error("文件上传失败:", error);
+                uploadStatus.innerText = "文件上传失败: " + error.message;
+            });
     });
 
     /**
@@ -352,6 +408,54 @@
         messagesList.appendChild(newMessage);
         // 滚动到底部
         messagesList.scrollTop = messagesList.scrollHeight;
+    }
+
+    /**
+     * 显示文件消息
+     */
+    function displayFile(data) {
+        console.log("Display file:", data); // 调试日志
+        var fileListItems = document.getElementById("fileListItems");
+        var newFileItem = document.createElement("li");
+        newFileItem.className = "file-item";
+
+        var fileLink = document.createElement("a");
+        fileLink.href = data.fileUrl;
+        fileLink.innerText = data.fileName;
+        fileLink.download = data.fileName;
+        fileLink.target = "_blank"; // 在新标签页打开
+
+        newFileItem.appendChild(fileLink);
+        newFileItem.innerHTML += ` (由 ${data.sender} 上传 • ${dayjs(data.timestamp).format('YYYY-MM-DD HH:mm')})`;
+
+        fileListItems.appendChild(newFileItem);
+        // 滚动到底部
+        fileListItems.scrollTop = fileListItems.scrollHeight;
+    }
+
+    /**
+     * 显示文件列表
+     */
+    function displayFileList(files) {
+        console.log("Display file list:", files); // 调试日志
+        var fileListItems = document.getElementById("fileListItems");
+        fileListItems.innerHTML = ""; // 清空当前文件列表
+
+        files.forEach(function (file) {
+            var fileItem = document.createElement("li");
+            fileItem.className = "file-item";
+
+            var fileLink = document.createElement("a");
+            fileLink.href = `http://127.0.0.1:8080/api/chatfiles/download/${file.id}`;
+            fileLink.innerText = file.fileName;
+            fileLink.download = file.fileName;
+            fileLink.target = "_blank"; // 在新标签页打开
+
+            fileItem.appendChild(fileLink);
+            fileItem.innerHTML += ` (由 ${file.sender} 上传 • ${dayjs(file.timestamp).format('YYYY-MM-DD HH:mm')})`;
+
+            fileListItems.appendChild(fileItem);
+        });
     }
 
     /**

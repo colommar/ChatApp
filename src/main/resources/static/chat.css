@@ -173,6 +173,47 @@ h1 {
     transform: scale(0.98);
 }
 
+/* 文件上传区域样式 */
+#fileUploadArea {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+#fileUploadArea input[type="file"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+}
+
+#fileUploadArea button {
+    padding: 12px 20px;
+    background-color: #4A90E2;
+    border: none;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#fileUploadArea button:hover {
+    background-color: #357ABD;
+}
+
+#fileUploadArea button:active {
+    transform: scale(0.98);
+}
+
+#uploadStatus {
+    margin-top: 5px;
+    font-size: 14px;
+    color: #4CAF50;
+}
+
 /* 用户列表样式 */
 #userList {
     flex: 1;
@@ -213,6 +254,45 @@ h1 {
 
 #userListItems li:hover {
     background-color: #f0f0f0;
+}
+
+/* 文件列表样式 */
+#fileList {
+    flex: 1;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    height: 600px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+#fileList h3 {
+    margin-top: 0;
+    text-align: center;
+    color: #333;
+    font-weight: 600;
+}
+
+#fileListItems {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#fileListItems li {
+    padding: 10px 15px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    transition: background-color 0.3s;
+}
+
+#fileListItems li:hover {
+    background-color: #e0e0e0;
 }
 
 /* 状态图标 */
@@ -378,7 +458,7 @@ h1 {
         flex-direction: column;
     }
 
-    #chat, #userList {
+    #chat, #userList, #fileList {
         width: 100%;
         height: auto;
     }
@@ -454,6 +534,22 @@ h1 {
 }
 
 /* Smooth Scroll */
-#messages, #userList {
+#messages, #userList, #fileList {
     scroll-behavior: smooth;
+}
+
+/* 文件列表项样式 */
+.file-item a {
+    text-decoration: none;
+    color: #4A90E2;
+}
+
+.file-item a:hover {
+    text-decoration: underline;
+    color: #357ABD;
+}
+
+/* 用户列表项样式 */
+#userListItems li span:last-child {
+    margin-left: 5px;
 }

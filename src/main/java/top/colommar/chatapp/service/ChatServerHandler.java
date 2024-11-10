@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import top.colommar.chatapp.model.ChatFile;
 import top.colommar.chatapp.model.Message;
 import top.colommar.chatapp.model.User;
+import top.colommar.chatapp.repository.ChatFileRepository;
 import top.colommar.chatapp.repository.MessageRepository;
 import top.colommar.chatapp.repository.UserRepository;
 
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @ChannelHandler.Sharable
+@Component
 public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
     // 在线用户：用户名 -> Channel
@@ -32,10 +35,12 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
 
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final ChatFileRepository chatFileRepository;
 
-    public ChatServerHandler(UserRepository userRepository, MessageRepository messageRepository) {
+    public ChatServerHandler(UserRepository userRepository, MessageRepository messageRepository, ChatFileRepository chatfileRepository) {
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.chatFileRepository = chatfileRepository;
         initializeUserStatus();
         log.info("ChatServerHandler created...");
     }
@@ -49,11 +54,11 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
             return ;
         }
         List<User> users = userRepository.findAll();
-        log.warn("call func initializeUserStatus: {}", users);
+//        log.warn("call func initializeUserStatus: {}", users);
         for (User user : users) {
             userStatus.put(user.getUsername(), "offline");
         }
-        log.info("Initialized userStatus with all users as offline: {}", userStatus);
+//        log.info("Initialized userStatus with all users as offline: {}", userStatus);
     }
 
     @Override
@@ -79,11 +84,117 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
         } else if ("message".equals(type)) {
             handleMessage(ctx, data);
         } else if ("history".equals(type)) {
-            handleHistory(ctx, data);
+            log.warn("done...");
+//            handleHistory(ctx, data);
         } else {
             sendError(ctx, "Unsupported message type: " + type);
         }
     }
+
+    /**
+     * 广播文件消息给相关用户
+     *
+     * @param savedChatFile 已保存的 ChatFile 对象
+     */
+    public void broadcastFileMessage(ChatFile savedChatFile) {
+
+        Map<String, Object> fileMessage = new HashMap<>();
+        fileMessage.put("type", "file");
+        fileMessage.put("sender", savedChatFile.getSender());
+        fileMessage.put("fileName", savedChatFile.getFileName());
+        fileMessage.put("fileUrl", "/api/chatfiles/download/" + savedChatFile.getId());
+        fileMessage.put("receiver", savedChatFile.getReceiver());
+        fileMessage.put("timestamp", savedChatFile.getTimestamp());
+
+        String messageJson;
+        try {
+            messageJson = objectMapper.writeValueAsString(fileMessage);
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing file message", e);
+            return;
+        }
+
+        TextWebSocketFrame messageFrame = new TextWebSocketFrame(messageJson);
+
+        // 发送给发送者自己
+        Channel senderChannel = userChannels.get(savedChatFile.getSender());
+        if (senderChannel != null && senderChannel.isActive()) {
+            senderChannel.writeAndFlush(messageFrame.copy());
+            log.info("文件从 {} 发送给自己", savedChatFile.getSender());
+        }
+
+        if (!savedChatFile.getReceiver().equals("null")&& !savedChatFile.getReceiver().isEmpty()) {
+            // 私聊文件
+            Channel receiverChannel = userChannels.get(savedChatFile.getReceiver());
+            if (receiverChannel != null && receiverChannel.isActive()) {
+                receiverChannel.writeAndFlush(messageFrame.copy());
+                log.info("文件从 {} 发送给 {}", savedChatFile.getSender(), savedChatFile.getReceiver());
+            } else {
+                log.warn("用户 {} 不在线，文件未发送", savedChatFile.getReceiver());
+            }
+        } else {
+            // 群聊文件
+            for (Map.Entry<String, Channel> entry : userChannels.entrySet()) {
+                String user = entry.getKey();
+                Channel channel = entry.getValue();
+                // 排除发送者自己
+                if (!user.equals(savedChatFile.getSender()) && channel.isActive()) {
+                    channel.writeAndFlush(messageFrame.copy());
+                    log.info("群聊文件从 {} 发送给 {}", savedChatFile.getSender(), user);
+                }
+            }
+            log.info("群聊文件从 {} 广播给所有在线用户", savedChatFile.getSender());
+        }
+    }
+
+
+    /**
+     * 广播文件列表给登录的用户
+     *
+     * @param username 登录的用户名
+     */
+    private void broadcastFileList(String username) {
+        List<ChatFile> allFiles = chatFileRepository.findAll();
+        log.info("All files in database: {}", allFiles);
+        Map<String, Object> fileListMessage = new HashMap<>();
+        List<ChatFile> userFiles = new ArrayList<>();  // 用于存储与用户相关的文件
+
+        for (ChatFile file : allFiles) {
+            String sender = file.getSender();
+            String receiver = file.getReceiver();
+
+            // 检查文件是否与当前用户相关
+            if (sender.equals(username) || (receiver != null && receiver.equals(username)) || receiver == null) {
+                userFiles.add(file);
+            }
+        }
+
+        // 如果有与该用户相关的文件，则创建消息并发送
+        if (!userFiles.isEmpty()) {
+            fileListMessage.put("type", "fileList");
+            fileListMessage.put("files", userFiles);
+
+            String messageJson;
+            try {
+                messageJson = objectMapper.writeValueAsString(fileListMessage);
+            } catch (JsonProcessingException e) {
+                log.error("Error serializing file list message", e);
+                return;
+            }
+
+            TextWebSocketFrame messageFrame = new TextWebSocketFrame(messageJson);
+
+            // 发送给当前用户
+            Channel userChannel = userChannels.get(username);
+            if (userChannel != null && userChannel.isActive()) {
+                userChannel.writeAndFlush(messageFrame);
+                log.info("已发送文件列表给 {}", username);
+            }
+        } else {
+            log.info("No relevant files found for user {}", username);
+        }
+    }
+
 
     /**
      * 处理登录请求
@@ -120,6 +231,9 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
 
             // 广播用户状态更新
             broadcastUserStatusUpdate(username, "online");
+
+            // 广播文件系统
+            broadcastFileList(username);
         } else {
             // 登录失败
             sendLoginResponse(ctx, "failure", "用户名或密码错误");
@@ -453,4 +567,6 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
         log.error("Exception in ChatServerHandler", cause);
         ctx.close();
     }
+
+
 }
