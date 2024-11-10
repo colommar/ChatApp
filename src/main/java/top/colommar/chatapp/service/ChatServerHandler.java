@@ -207,7 +207,9 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
             if (receiverChannel != null && receiverChannel.isActive()) {
                 try {
                     // 发送给接收者
+                    log.warn(messageFrame.copy().text());
                     receiverChannel.writeAndFlush(messageFrame.copy());
+                    log.warn(messageFrame.copy().text());
                     // 发送给发送者自己，确认消息已发送
                     ctx.channel().writeAndFlush(messageFrame.copy());
                     log.info("私聊消息从 {} 发送给 {}", sender, receiver);
@@ -216,7 +218,12 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
                 }
             } else {
                 // 接收者不在线，发送错误信息给发送者
-                sendError(ctx, "用户 " + receiver + " 不在线");
+                // sendError(ctx, "用户 " + receiver + " 不在线");
+                /**
+                 * 发给自己
+                 */
+                ctx.channel().writeAndFlush(messageFrame.copy());
+
             }
         } else {
             // 群聊逻辑

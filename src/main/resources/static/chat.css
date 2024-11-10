@@ -1,227 +1,459 @@
+/* 全局样式 */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
     margin: 0;
     padding: 0;
+    color: #333;
 }
+
+/* 标题样式 */
 h1 {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #4A90E2;
+    color: #fff;
     margin: 0;
     padding: 20px;
     text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+/* 容器样式 */
 #container {
     display: flex;
     max-width: 1200px;
-    margin: 20px auto;
-    padding: 10px;
+    margin: 40px auto;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
 }
+
 /* 聊天区样式 */
 #chat {
     flex: 3;
     background-color: #fff;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    margin-right: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
     height: 600px;
     position: relative;
 }
+
 /* 消息列表样式 */
 #messages {
     list-style-type: none;
     padding: 10px;
     margin: 0;
-    max-height: 500px;
+    flex: 1;
     overflow-y: auto;
-    background-color: #fafafa;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 消息项样式 */
+.message {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    position: relative;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-in-out;
+    transition: background-color 0.3s, border-left 0.3s;
     display: flex;
     flex-direction: column;
 }
-/* 消息项样式 */
-.message {
-    margin-bottom: 10px;
-    max-width: 70%;
-    word-wrap: break-word;
+
+/* 隐藏用户头像 */
+.message .avatar {
+    display: none;
 }
-/* 自己发送的消息靠右显示 */
+
+/* 自己发送的消息 */
 .message.sent {
     align-self: flex-end;
+    background-color: #DCF8C6;
     text-align: right;
+    border-left: 4px solid #4CAF50;
 }
-/* 他人发送的消息靠左显示 */
+
+/* 他人发送的消息 */
 .message.received {
     align-self: flex-start;
+    background-color: #fff;
     text-align: left;
+    border-left: 4px solid #4A90E2;
 }
+
 /* 私聊消息样式 */
-.message.private .message-content {
-    background-color: #fff4e5;
-    border: 1px solid #ffcc80;
-    border-radius: 10px;
-    padding: 10px;
+.message.private {
+    background-color: #ffe6cc;
+    border-left: 4px solid #ff9800;
 }
+
 /* 群聊消息样式 */
-.message.group .message-content {
-    background-color: #e0f7fa;
-    border: 1px solid #80deea;
-    border-radius: 10px;
-    padding: 10px;
+.message.group {
+    background-color: #e3f2fd;
+    border-left: 4px solid #2196F3;
 }
+
 /* 消息文本 */
 .message-text {
     font-size: 16px;
     margin-bottom: 5px;
+    line-height: 1.4;
 }
+
 /* 消息信息（发送者和时间） */
 .message-info {
     font-size: 12px;
-    color: #666;
+    color: #888;
 }
+
 /* 聊天输入区域 */
 #inputArea {
     display: flex;
-    margin-top: 10px;
+    margin-top: 15px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
+
+/* 输入框与选择框 */
 #receiverSelect,
 #messageInput {
-    padding: 10px;
+    padding: 12px 15px;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 20px;
     font-size: 14px;
-    margin-right: 10px;
+    outline: none;
+    transition: border-color 0.3s;
 }
+
+#receiverSelect:focus,
+#messageInput:focus {
+    border-color: #4A90E2;
+}
+
 #receiverSelect {
     width: 200px;
+    background-color: #f0f0f0;
 }
+
 #messageInput {
     flex: 1;
+    background-color: #fff;
 }
+
+/* 发送按钮 */
 #sendButton {
-    padding: 10px 20px;
-    background-color: #4CAF50;
+    padding: 12px 20px;
+    background-color: #4A90E2;
     border: none;
-    border-radius: 3px;
+    border-radius: 20px;
     color: #fff;
     font-size: 14px;
     cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 #sendButton:hover {
-    background-color: #45a049;
+    background-color: #357ABD;
 }
+
+#sendButton:active {
+    transform: scale(0.98);
+}
+
 /* 用户列表样式 */
 #userList {
     flex: 1;
     background-color: #fff;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
     height: 600px;
     overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
+
 #userList h3 {
     margin-top: 0;
     text-align: center;
     color: #333;
+    font-weight: 600;
 }
+
+/* 用户列表项 */
 #userListItems {
     list-style-type: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
+
 #userListItems li {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    padding: 10px 15px;
+    border-radius: 20px;
+    transition: background-color 0.3s;
     cursor: pointer;
 }
+
+#userListItems li:hover {
+    background-color: #f0f0f0;
+}
+
+/* 状态图标 */
 .status-icon {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     display: inline-block;
-    margin-right: 8px;
+    margin-right: 10px;
 }
+
 .status-online {
-    background-color: green;
-}
-.status-offline {
-    background-color: gray;
-}
-/* 滚动条美化 */
-#messages::-webkit-scrollbar,
-#userList::-webkit-scrollbar {
-    width: 8px;
-}
-#messages::-webkit-scrollbar-thumb,
-#userList::-webkit-scrollbar-thumb {
-    background-color: #888;
-    border-radius: 4px;
-}
-#messages::-webkit-scrollbar-thumb:hover,
-#userList::-webkit-scrollbar-thumb:hover {
-    background-color: #555;
-}
-/* 登录界面样式 */
-#loginContainer {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    display: none; /* 默认隐藏 */
-}
-#loginContainer.active {
-    display: block; /* 显示登录界面 */
-}
-#loginForm div {
-    margin-bottom: 15px;
-}
-#loginForm label {
-    display: block;
-    margin-bottom: 5px;
-}
-#loginForm input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-}
-#loginForm button {
-    width: 100%;
-    padding: 10px;
     background-color: #4CAF50;
+}
+
+.status-offline {
+    background-color: #ccc;
+}
+
+/* 登录与注册界面卡片样式 */
+#loginContainer,
+#registerContainer {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 40px 30px;
     border: none;
-    border-radius: 3px;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    display: none; /* 默认隐藏 */
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    position: relative;
+}
+
+/* 激活状态下的卡片显示 */
+#loginContainer.active,
+#registerContainer.active {
+    display: block;
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* 表单标题样式 */
+#loginContainer h2,
+#registerContainer h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+    color: #4A90E2;
+    font-weight: 600;
+}
+
+/* 表单输入框容器 */
+#loginForm div,
+#registerForm div {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+/* 输入框图标 */
+#loginForm label::before,
+#registerForm label::before {
+    content: attr(data-icon);
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+/* 表单标签隐藏 */
+#loginForm label,
+#registerForm label {
+    position: absolute;
+    left: -9999px;
+}
+
+/* 输入框样式 */
+#loginForm input,
+#registerForm input {
+    width: 100%;
+    padding: 12px 12px 12px 40px; /* 左侧预留图标空间 */
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #f9f9f9;
+}
+
+/* 输入框聚焦时的效果 */
+#loginForm input:focus,
+#registerForm input:focus {
+    border-color: #4A90E2;
+    box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
+/* 提交按钮样式 */
+#loginForm button,
+#registerForm button {
+    width: 100%;
+    padding: 14px 0;
+    background-color: #4A90E2;
+    border: none;
+    border-radius: 20px;
     color: #fff;
     font-size: 16px;
     cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-#loginForm button:hover {
-    background-color: #45a049;
+
+#loginForm button:hover,
+#registerForm button:hover {
+    background-color: #357ABD;
 }
-#registerContainer {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    display: none; /* 默认隐藏 */
+
+#loginForm button:active,
+#registerForm button:active {
+    transform: scale(0.98);
 }
-#registerContainer.active {
-    display: block; /* 显示注册界面 */
+
+/* 注册与登录切换链接 */
+#loginContainer p,
+#registerContainer p {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #555;
 }
+
+#loginContainer p a,
+#registerContainer p a {
+    color: #4A90E2;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+#loginContainer p a:hover,
+#registerContainer p a:hover {
+    color: #357ABD;
+}
+
 /* 当前用户名显示样式 */
 #currentUsername {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
+    bottom: 15px;
+    left: 15px;
     font-size: 14px;
     color: #666;
+    background-color: #f0f0f0;
+    padding: 5px 10px;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+
+    #chat, #userList {
+        width: 100%;
+        height: auto;
+    }
+
+    #inputArea {
+        flex-direction: column;
+    }
+
+    #receiverSelect {
+        width: 100%;
+    }
+
+    #sendButton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    #loginContainer,
+    #registerContainer {
+        margin: 40px 20px;
+        padding: 30px 20px;
+    }
+
+    #loginForm input,
+    #registerForm input {
+        padding: 12px 12px 12px 35px; /* 减少图标空间 */
+    }
+
+    #loginForm label::before,
+    #registerForm label::before {
+        left: 10px;
+    }
+}
+
+/* 消息淡入动画 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 表单图标内容使用 Font Awesome */
+#loginForm label[for="loginUsername"]::before,
+#registerForm label[for="registerUsername"]::before {
+    content: "\f007"; /* 用户图标 */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+#loginForm label[for="loginPassword"]::before,
+#registerForm label[for="registerPassword"]::before {
+    content: "\f023"; /* 锁图标 */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+/* 额外优化：表单占位符颜色 */
+#loginForm input::placeholder,
+#registerForm input::placeholder {
+    color: #aaa;
+    transition: color 0.3s;
+}
+
+#loginForm input:focus::placeholder,
+#registerForm input:focus::placeholder {
+    color: #888;
+}
+
+/* Smooth Scroll */
+#messages, #userList {
+    scroll-behavior: smooth;
 }
