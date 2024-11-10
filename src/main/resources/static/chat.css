@@ -21,14 +21,14 @@ h1 {
 #chat {
     flex: 3;
     background-color: #fff;
-    border: 2px solid #ccc; /* 添加边框 */
+    border: 2px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     margin-right: 20px;
     display: flex;
     flex-direction: column;
     height: 600px;
-    position: relative; /* 为绝对定位的用户名容器提供参考 */
+    position: relative;
 }
 /* 消息列表样式 */
 #messages {
@@ -97,7 +97,7 @@ h1 {
     margin-right: 10px;
 }
 #receiverSelect {
-    width: 150px;
+    width: 200px;
 }
 #messageInput {
     flex: 1;
@@ -118,7 +118,7 @@ h1 {
 #userList {
     flex: 1;
     background-color: #fff;
-    border: 2px solid #ccc; /* 添加边框 */
+    border: 2px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     height: 600px;
@@ -151,7 +151,7 @@ h1 {
     background-color: green;
 }
 .status-offline {
-    background-color: yellow;
+    background-color: gray;
 }
 /* 滚动条美化 */
 #messages::-webkit-scrollbar,
