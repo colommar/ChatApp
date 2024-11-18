@@ -246,14 +246,16 @@ h1 {
 #userListItems li {
     display: flex;
     align-items: center;
-    padding: 10px 15px;
+    padding: 12px 18px;
     border-radius: 20px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, box-shadow 0.2s;
     cursor: pointer;
+    border: 1px solid #eee;
 }
 
 #userListItems li:hover {
     background-color: #f0f0f0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* 文件列表样式 */
@@ -275,30 +277,35 @@ h1 {
     font-weight: 600;
 }
 
-#fileListItems {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
+/* 文件列表项样式 */
 #fileListItems li {
     padding: 10px 15px;
     border-radius: 10px;
-    background-color: #f9f9f9;
-    transition: background-color 0.3s;
+    background: linear-gradient(135deg, #f9f9f9, #eaeaea);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    border: 1px solid #ddd;
 }
 
 #fileListItems li:hover {
     background-color: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-item a {
+    text-decoration: none;
+    color: #4A90E2;
+    font-weight: 600;
+}
+
+.file-item a:hover {
+    text-decoration: underline;
+    color: #357ABD;
 }
 
 /* 状态图标 */
 .status-icon {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     display: inline-block;
     margin-right: 10px;
@@ -309,7 +316,7 @@ h1 {
 }
 
 .status-offline {
-    background-color: #ccc;
+    background-color: #b0b0b0;
 }
 
 /* 登录与注册界面卡片样式 */
@@ -439,19 +446,6 @@ h1 {
     color: #357ABD;
 }
 
-/* 当前用户名显示样式 */
-#currentUsername {
-    position: absolute;
-    bottom: 15px;
-    left: 15px;
-    font-size: 14px;
-    color: #666;
-    background-color: #f0f0f0;
-    padding: 5px 10px;
-    border-radius: 20px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
     #container {
@@ -538,18 +532,33 @@ h1 {
     scroll-behavior: smooth;
 }
 
-/* 文件列表项样式 */
-.file-item a {
-    text-decoration: none;
-    color: #4A90E2;
-}
-
-.file-item a:hover {
-    text-decoration: underline;
-    color: #357ABD;
-}
-
 /* 用户列表项样式 */
 #userListItems li span:last-child {
     margin-left: 5px;
+}
+
+/* 当前用户名显示样式 */
+#currentUsername {
+    position: absolute;
+    top: 20px; /* 移到顶部 */
+    right: 20px; /* 靠右对齐 */
+    font-size: 14px;
+    color: #666;
+    background-color: #e8f0fe;
+    padding: 8px 12px;
+    border-radius: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+    z-index: 10; /* 确保在页面元素上方显示 */
+}
+
+/* 容器样式（确保包含当前用户名位置） */
+#container {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+    position: relative; /* 为绝对定位的当前用户名提供参照 */
 }
