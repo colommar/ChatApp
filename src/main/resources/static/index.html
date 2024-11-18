@@ -452,11 +452,17 @@
             fileLink.target = "_blank"; // 在新标签页打开
 
             fileItem.appendChild(fileLink);
-            fileItem.innerHTML += ` (由 ${file.sender} 上传 • ${dayjs(file.timestamp).format('YYYY-MM-DD HH:mm')})`;
+
+            // 如果 receiver 是 null 或 undefined，则显示为 "所有人"
+            const receiverDisplay = file.receiver === "null" ? "所有人" : file.receiver;
+
+            fileItem.innerHTML += ` (由 <strong>${file.sender}</strong> 上传给 <strong>${receiverDisplay}</strong> • ${dayjs(file.timestamp).format('YYYY-MM-DD HH:mm')})`;
 
             fileListItems.appendChild(fileItem);
         });
     }
+
+
 
     /**
      * 更新用户列表显示
