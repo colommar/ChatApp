@@ -15,10 +15,9 @@ import top.colommar.chatapp.repository.UserRepository;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Slf4j
-@ChannelHandler.Sharable
+//@ChannelHandler.Sharable
 @Component
 public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
 
@@ -29,7 +28,7 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
     private static final Map<ChannelId, String> channelUsers = new ConcurrentHashMap<>();
 
     // 用户状态：用户名 -> 状态（online/offline）
-    private static final Map<String, String> userStatus = new ConcurrentHashMap<>();
+    public static final Map<String, String> userStatus = new ConcurrentHashMap<>();
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -83,9 +82,6 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
             handleRegister(ctx, data);
         } else if ("message".equals(type)) {
             handleMessage(ctx, data);
-        } else if ("history".equals(type)) {
-            log.warn("done...");
-//            handleHistory(ctx, data);
         } else {
             sendError(ctx, "Unsupported message type: " + type);
         }
@@ -98,13 +94,12 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
      */
     public void broadcastFileMessage(ChatFile savedChatFile) {
 
+        List<ChatFile> userFiles = new ArrayList<>();
+
         Map<String, Object> fileMessage = new HashMap<>();
-        fileMessage.put("type", "file");
-        fileMessage.put("sender", savedChatFile.getSender());
-        fileMessage.put("fileName", savedChatFile.getFileName());
-        fileMessage.put("fileUrl", "/api/chatfiles/download/" + savedChatFile.getId());
-        fileMessage.put("receiver", savedChatFile.getReceiver());
-        fileMessage.put("timestamp", savedChatFile.getTimestamp());
+        fileMessage.put("type", "fileList");
+        userFiles.add(savedChatFile);
+        fileMessage.put("files", userFiles);
 
         String messageJson;
         try {
@@ -153,7 +148,7 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
      *
      * @param username 登录的用户名
      */
-    private void broadcastFileList(String username) {
+    public void broadcastFileList(String username) {
         List<ChatFile> allFiles = chatFileRepository.findAll();
         log.info("All files in database: {}", allFiles);
         Map<String, Object> fileListMessage = new HashMap<>();
@@ -355,54 +350,6 @@ public class ChatServerHandler extends SimpleChannelInboundHandler<TextWebSocket
             // 发送给发送者自己
             ctx.channel().writeAndFlush(messageFrame.copy());
             log.info("群聊消息从 {} 发送给所有人（包括发送者）", sender);
-        }
-    }
-
-    /**
-     * 处理聊天历史请求
-     */
-    private void handleHistory(ChannelHandlerContext ctx, Map<String, Object> data) {
-        Integer page = (Integer) data.get("page");
-        Integer size = (Integer) data.get("size");
-
-        if (page == null || size == null) {
-            sendError(ctx, "缺少分页参数");
-            return;
-        }
-
-        // 使用分页查询，假设 MessageRepository 支持分页
-        List<Message> messages = messageRepository.findAllByOrderByTimestampAsc();
-
-        // 计算分页
-        int fromIndex = page * size;
-        int toIndex = Math.min(fromIndex + size, messages.size());
-
-        if (fromIndex >= messages.size()) {
-            // 无更多消息
-            fromIndex = toIndex = messages.size();
-        }
-
-        List<Message> pagedMessages = messages.subList(fromIndex, toIndex);
-
-        List<Map<String, Object>> messageDataList = pagedMessages.stream().map(message -> {
-            Map<String, Object> messageData = new HashMap<>();
-            messageData.put("type", "message");
-            messageData.put("sender", message.getSender());
-            messageData.put("content", message.getContent());
-            messageData.put("receiver", message.getReceiver());
-            messageData.put("timestamp", message.getTimestamp().getTime());
-            return messageData;
-        }).collect(Collectors.toList());
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("type", "history");
-        response.put("messages", messageDataList);
-
-        try {
-            String json = objectMapper.writeValueAsString(response);
-            ctx.writeAndFlush(new TextWebSocketFrame(json));
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing history response", e);
         }
     }
 

@@ -14,10 +14,16 @@ import top.colommar.chatapp.service.ChatServerHandler;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
+import static top.colommar.chatapp.service.ChatServerHandler.userStatus;
 
 @Slf4j
 @RestController
@@ -59,8 +65,6 @@ public class ChatFileController {
 
             // 目标文件路径
             Path uploadDir = Paths.get("uploads").toAbsolutePath().normalize();
-
-
             Path targetLocation = uploadDir.resolve(uniqueFileName);
 
             // 确保上传目录存在
@@ -74,24 +78,37 @@ public class ChatFileController {
             chatFile.setFileName(originalFileName);
             chatFile.setFilePath("uploads/" + uniqueFileName);
             chatFile.setSender(sender);
-            chatFile.setReceiver(receiver != "null" ? receiver : "");
+            chatFile.setReceiver(receiver != null && !receiver.equals("null") ? receiver : "");
             chatFile.setTimestamp(System.currentTimeMillis());
 
             // 保存到数据库
             ChatFile savedChatFile = chatFileRepository.save(chatFile);
 
-            // 生成文件下载 URL
-            String fileUrl = "/api/chatfiles/download/" + savedChatFile.getId();
+            // 生成文件信息的 JSON 响应
+            Map<String, Object> fileResponse = new HashMap<>();
+            fileResponse.put("id", savedChatFile.getId());
+            fileResponse.put("fileName", savedChatFile.getFileName());
+            fileResponse.put("filePath", savedChatFile.getFilePath());
+            fileResponse.put("sender", savedChatFile.getSender());
+            fileResponse.put("receiver", savedChatFile.getReceiver());
+            fileResponse.put("timestamp", savedChatFile.getTimestamp());
 
             // 通过 WebSocket 广播文件消息
-            chatServerHandler.broadcastFileMessage(savedChatFile);
+//            chatServerHandler.broadcastFileMessage(savedChatFile);
+            for (Map.Entry<String, String> entry : userStatus.entrySet()) {
+                String key = entry.getKey();    // 获取键
+                chatServerHandler.broadcastFileList(key);
+            }
 
-            return ResponseEntity.ok().body(fileUrl);
+            // 返回文件信息的 JSON 响应
+            return ResponseEntity.ok(fileResponse);
+
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("文件上传失败");
         }
     }
+
 
     /**
      * 处理文件下载
@@ -126,11 +143,21 @@ public class ChatFileController {
         // 设置下载的原始文件名
         String originalFileName = extractOriginalFileName(file.getName());
 
+
+        // 2024-11-26 17:46:42 [http-nio-8080-exec-1] WARN  o.a.coyote.http11.Http11Processor - The HTTP response header [Content-Disposition] with value [attachment; filename="参与协议书.pdf"] has been removed from the response because it is invalid
+        // [Content-Disposition] warn
+//        return ResponseEntity.ok()
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFileName + "\"")
+//                .contentLength(file.length())
+//                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//                .body(resource);
+        // 指明为 UTF-8
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + originalFileName + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + URLEncoder.encode(originalFileName, StandardCharsets.UTF_8))
                 .contentLength(file.length())
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(resource);
+
     }
 
     /**
